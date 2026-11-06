@@ -216,17 +216,17 @@
   .actions { display: flex; flex-wrap: wrap; gap: 12px; animation: rise .9s .42s var(--ease) both; }
   .actions:empty { display: none; }
 
-  .skills { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; min-height: clamp(240px, 40vh, 520px); }
+  .skills { display: grid; grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)); gap: 16px; min-height: clamp(240px, 40vh, 520px); }
   /* tiles open upward in turn; under a mouse they tilt toward the pointer (Scripts.html sets --tx, --ty, --glare) */
   .skill {
     position: relative; display: block; overflow: hidden; border-radius: var(--r-lg);
     text-decoration: none; color: #fff; background: var(--graphite);
-    isolation: isolate;
+    isolation: isolate; container-type: inline-size; /* the title is sized from the tile's own width, see .skill-title */
     transform: perspective(1100px) rotateX(calc(var(--ty, 0) * -7deg)) rotateY(calc(var(--tx, 0) * 9deg));
     animation: tile-in 1s var(--ease) backwards; animation-delay: calc(var(--n, 0) * 80ms + .45s);
     transition: box-shadow .45s var(--ease), scale .2s var(--ease);
   }
-  .skill:nth-child(2) { --n: 1; } .skill:nth-child(3) { --n: 2; }
+  .skill:nth-child(2) { --n: 1; } .skill:nth-child(3) { --n: 2; } .skill:nth-child(4) { --n: 3; }
   @keyframes tile-in { from { opacity: 0; clip-path: inset(18% 0 0 0 round var(--r-lg)); } to { opacity: 1; clip-path: inset(0 round var(--r-lg)); } }
   .skill img, .skill video {
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; border-radius: inherit; background: var(--graphite-2);
@@ -243,18 +243,27 @@
   .skill:hover { box-shadow: 0 34px 60px -34px rgba(10,12,15,.6); }
   .skill::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(22,25,29,.08); pointer-events: none; }
   .skill-copy { position: absolute; left: 22px; right: 22px; bottom: 20px; display: flex; flex-direction: column; gap: 4px; }
-  .skill-title { font-size: clamp(22px, 2vw, 28px); font-weight: 700; font-stretch: var(--wide); letter-spacing: -.025em; display: flex; align-items: center; gap: 10px; }
+  /* four tiles share the row, so the title takes its size from the tile (container units) and stays on one line; the first size is for browsers without them */
+  .skill-title { font-size: clamp(22px, 2vw, 28px); font-size: clamp(18px, calc((100cqw - 84px) / 7.8), 28px); font-weight: 700; font-stretch: var(--wide); letter-spacing: -.025em; display: flex; align-items: center; gap: 10px; }
   .skill-title::after {
     content: ''; width: 28px; height: 28px; border-radius: 50%; flex: none;
     background: rgba(255,255,255,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E") center / 16px no-repeat;
     transition: transform .3s var(--ease), background-color .3s;
   }
   .skill-line { font-size: 14px; color: rgba(255,255,255,.82); line-height: 1.45; max-width: 40ch; }
+  /* the narrowest tiles (a window just wider than the 980px breakpoint) give the text more room and shrink the arrow */
+  @container (max-width: 220px) {
+    .skill-copy { left: 16px; right: 16px; }
+    .skill-title { gap: 8px; }
+    .skill-title::after { width: 24px; height: 24px; background-size: 14px; }
+  }
   .skill video { opacity: 0; transition: transform .8s var(--ease), opacity .9s ease; }
   .skill video.is-playing { opacity: 1; }
   .skill:hover img, .skill:hover video { transform: scale(1.06); }
   .skill:hover .skill-title::after { transform: translateX(4px); background-color: var(--loop); }
   .skill:active { scale: .985; }
+  /* artwork drawn for the tile: keep its top, and let the bottom be cropped under the text */
+  .skill img.art-top { object-position: 50% 0; }
 
   /* ------------------------------------------------------------------ inner pages
      Section bar: graphite under the light global nav, so the two tiers read apart.
@@ -584,6 +593,41 @@
   .more[open] > summary::after { transform: rotate(180deg); }
   .more > .rail { padding: 8px 0 24px; }
 
+  /* ------------------------------------------------------------------ the AI page */
+  /* a tool drawn as what goes in, the tool, and what comes out */
+  .pipe { margin: 28px 0 0; padding: clamp(20px, 3vw, 36px); border-radius: var(--r-lg); background: var(--graphite); color: #fff;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, .9fr) auto minmax(0, 1fr); align-items: center; gap: 0 clamp(10px, 2vw, 28px); }
+  .pipe-col { display: flex; flex-direction: column; gap: 10px; }
+  .pipe-head { font-size: 14px; color: var(--loop-on-dark); }
+  .pipe-node { display: block; padding: 12px 14px; border-radius: 12px; font-size: 15px; line-height: 1.35; background: rgba(142,169,255,.07); box-shadow: inset 0 0 0 1px rgba(142,169,255,.34); }
+  .pipe-node small { display: block; margin-top: 3px; font-size: 13px; line-height: 1.35; color: rgba(255,255,255,.62); }
+  .pipe-tool { padding: 20px 16px; text-align: center; font-size: 18px; font-weight: 650; letter-spacing: -.01em; background: var(--loop); box-shadow: none; }
+  .pipe-tool small { font-weight: 400; letter-spacing: 0; color: rgba(255,255,255,.8); }
+  .pipe-arrow { position: relative; width: clamp(28px, 4vw, 60px); height: 2px; background: repeating-linear-gradient(90deg, var(--loop-on-dark) 0 6px, transparent 6px 12px); animation: pipe-flow 1.1s linear infinite; }
+  .pipe-arrow::after { content: ''; position: absolute; right: -1px; top: 50%; width: 9px; height: 9px; border-top: 2px solid var(--loop-on-dark); border-right: 2px solid var(--loop-on-dark); transform: translateY(-50%) rotate(45deg); }
+  @keyframes pipe-flow { to { background-position: 12px 0; } }
+  @keyframes pipe-flow-down { to { background-position: 0 12px; } }
+  /* what a tool does, how it was built and how it was checked */
+  .how { margin: 28px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 clamp(20px, 3vw, 40px); border-top: 1px solid var(--hair); }
+  .how > div { padding: 16px 0 8px; }
+  .how dt { font-size: 14px; color: var(--steel); margin-bottom: 6px; }
+  .how dd { margin: 0; font-size: 16px; line-height: 1.55; color: var(--body); }
+  /* short rules, two to a row, each with its reason */
+  .ai-rules { margin: 20px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(32px, 5vw, 72px); border-top: 1px solid var(--hair); }
+  .ai-rules > div { padding: 22px 0; border-bottom: 1px solid var(--hair); }
+  .ai-rules dt { font-size: 20px; font-weight: 650; letter-spacing: -.015em; margin-bottom: 6px; }
+  .ai-rules dd { margin: 0; max-width: 54ch; color: var(--body); }
+  .more > .ai-rules { margin-top: 0; border-top: 0; }
+  .how + .todo-box { margin-top: 28px; }
+  @media (max-width: 1100px) { .how { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 760px) {
+    .pipe { grid-template-columns: minmax(0, 1fr); gap: 14px 0; }
+    .pipe-arrow { width: 2px; height: 34px; justify-self: center; background: repeating-linear-gradient(180deg, var(--loop-on-dark) 0 6px, transparent 6px 12px); animation-name: pipe-flow-down; }
+    .pipe-arrow::after { right: auto; left: 50%; top: auto; bottom: -1px; transform: translateX(-50%) rotate(135deg); }
+    .how, .ai-rules { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { .pipe-arrow { animation: none; } }
+
   /* a short silent video: plays while it is on screen (Scripts.html), with a pause button */
   .clip { position: relative; margin: 0; aspect-ratio: 4 / 3; border-radius: var(--r-lg); overflow: hidden; background: var(--graphite); }
   .clip video { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -678,6 +722,11 @@
             
           </div>
         
+          <div class="gnav-item" data-section="ai">
+            <a href="?page=ai" data-slug="ai">AI</a>
+            
+          </div>
+        
           <div class="gnav-item has-flyout" data-section="prototyping">
             <a href="?page=prototyping" data-slug="prototyping">Prototyping</a>
             
@@ -739,25 +788,28 @@
           <a class="sheet-sub" style="--i:3" href="?page=robotic-aseptic-filling" data-slug="robotic-aseptic-filling">Robotic Aseptic Filling</a>
         
       
-        <a class="sheet-top" style="--i:4" href="?page=prototyping" data-slug="prototyping">Prototyping</a>
-        
-          <a class="sheet-sub" style="--i:5" href="?page=vending-machine" data-slug="vending-machine">Drinkfill</a>
-        
-          <a class="sheet-sub" style="--i:6" href="?page=wearable-airbag-system" data-slug="wearable-airbag-system">Wearable Airbag</a>
-        
-          <a class="sheet-sub" style="--i:7" href="?page=pour-over-robot" data-slug="pour-over-robot">Pour Over Robot</a>
-        
-          <a class="sheet-sub" style="--i:8" href="?page=dna-sequencing" data-slug="dna-sequencing">DNA Sequencing</a>
+        <a class="sheet-top" style="--i:4" href="?page=ai" data-slug="ai">AI</a>
         
       
-        <a class="sheet-top" style="--i:9" href="?page=3d-modelling" data-slug="3d-modelling">3D Modelling</a>
+        <a class="sheet-top" style="--i:5" href="?page=prototyping" data-slug="prototyping">Prototyping</a>
         
-          <a class="sheet-sub" style="--i:10" href="?page=solidworks" data-slug="solidworks">SolidWorks</a>
+          <a class="sheet-sub" style="--i:6" href="?page=vending-machine" data-slug="vending-machine">Drinkfill</a>
         
-          <a class="sheet-sub" style="--i:11" href="?page=autodesk" data-slug="autodesk">Autodesk Revit</a>
+          <a class="sheet-sub" style="--i:7" href="?page=wearable-airbag-system" data-slug="wearable-airbag-system">Wearable Airbag</a>
+        
+          <a class="sheet-sub" style="--i:8" href="?page=pour-over-robot" data-slug="pour-over-robot">Pour Over Robot</a>
+        
+          <a class="sheet-sub" style="--i:9" href="?page=dna-sequencing" data-slug="dna-sequencing">DNA Sequencing</a>
         
       
-        <a class="sheet-top" style="--i:12" href="?page=about" data-slug="about">About</a>
+        <a class="sheet-top" style="--i:10" href="?page=3d-modelling" data-slug="3d-modelling">3D Modelling</a>
+        
+          <a class="sheet-sub" style="--i:11" href="?page=solidworks" data-slug="solidworks">SolidWorks</a>
+        
+          <a class="sheet-sub" style="--i:12" href="?page=autodesk" data-slug="autodesk">Autodesk Revit</a>
+        
+      
+        <a class="sheet-top" style="--i:13" href="?page=about" data-slug="about">About</a>
         
       
       
@@ -790,6 +842,13 @@
       <span class="skill-copy">
         <span class="skill-title">Automation</span>
         <span class="skill-line">DCS, PLC, MES and robotic aseptic fillers at Genentech and Cytiva</span>
+      </span>
+    </a>
+    <a class="skill" href="?page=ai">
+      <img crossorigin="anonymous" referrerpolicy="no-referrer" class="art-top" src="media/photos/ai-tile.webp" alt="" decoding="async">
+      <span class="skill-copy">
+        <span class="skill-title">AI</span>
+        <span class="skill-line">Tools I built with Claude: an SDS exporter, a DeltaV code interpreter and a PLC mapper</span>
       </span>
     </a>
     <a class="skill" href="?page=prototyping">
@@ -1009,6 +1068,159 @@
           </div>
           <div class="block todo-stack"><aside class="todo-box" data-todo="Needs your input"><strong>Result</strong><span>What changed because of this work? One sentence, with a number if you have one: time saved, uptime, units built, errors avoided.</span></aside><aside class="todo-box" data-todo="Needs your input"><strong>One design artifact</strong><span>Add one sanitised schematic, state diagram, FAT excerpt or test result. Check it is cleared to share first.</span></aside></div>
           <div class="page-body"><section class="block"><div class="split"><div class="prose"><h3>A filler at work</h3><p>A short, silent clip of one of the robotic fillers running.</p></div><figure class="clip"><video data-src="media/filler-run.mp4" data-poster="media/filler-run.jpg" muted loop playsinline preload="none" data-clip aria-label="A robotic aseptic filler running"></video></figure></div></section><section class="block"><div class="split flip"><div class="prose"><h3>Integration</h3><p>When a machine is manufactured, it is not yet considered functional. My integration work makes sure every component of the system, hardware and software, works together as intended.</p><h3>Troubleshoot</h3><p>Issues can build up throughout the manufacturing process, for many reasons. These issues are often not apparent until a control systems engineer starts integrating the machine.</p><h3>Validation</h3><p>After a system is fully integrated, we work together with process engineers to ensure our products are validated according to GMP standards, including commissioning, FAT, SAT and IQ/OQ..</p></div><div class="gallery"><div class="gallery-row"><button type="button" class="media" style="--ar:1.000" data-zoom aria-label="Enlarge: Gabe wiring a robotic filler&#x27;s electrical cabinet during integration"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/1g8fevnE3mYD7mj99rv3tMRLyVpMlVEKJ=w1100-l72-rw" alt="Gabe wiring a robotic filler&#x27;s electrical cabinet during integration" width="1280" height="1280" loading="lazy" decoding="async"></button></div></div></div></section><section class="block"><div class="rail" data-rail><div class="rail-track" tabindex="0"><button type="button" class="media" data-zoom aria-label="Enlarge: Vial nest under red light inside an aseptic filling isolator"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/1T5BaKKl6xFp-iOUGzdutbyvhAsrBnUKY=w1200-l72-rw" alt="Vial nest under red light inside an aseptic filling isolator" width="4032" height="3024" loading="lazy" decoding="async"></button><button type="button" class="media" data-zoom aria-label="Enlarge: Robot arm end effector above a vial nest inside the isolator"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/1hwfv4C71HFCSMUQirzL1mcievFYH7tak=w1200-l72-rw" alt="Robot arm end effector above a vial nest inside the isolator" width="1280" height="1280" loading="lazy" decoding="async"></button><button type="button" class="media" data-zoom aria-label="Enlarge: Robotic filling isolator in a test bay"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/17pmvK9OY38zzAc8aYwQjFUUK1w4f3aR1=w1200-l72-rw" alt="Robotic filling isolator in a test bay" width="4032" height="3024" loading="lazy" decoding="async"></button><button type="button" class="media" data-zoom aria-label="Enlarge: Robot arm moving a vial nest under red light"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/1p5LtTwP9gNhg9iuC7fyTRncdQwVt3Po1=w1200-l72-rw" alt="Robot arm moving a vial nest under red light" width="4032" height="3024" loading="lazy" decoding="async"></button><button type="button" class="media" data-zoom aria-label="Enlarge: Gabe gowned in a lab coat and hairnet at a cleanroom door"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/1C9PEqSzxBGsOZQy710CF1oVnxTwXlg1e=w1200-l72-rw" alt="Gabe gowned in a lab coat and hairnet at a cleanroom door" width="3024" height="2267" loading="lazy" decoding="async"></button></div><div class="rail-controls"><button type="button" class="round" data-dir="-1" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="round" data-dir="1" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div></div></section><section class="block"><div class="tiles"><a class="tile" href="https://vanrx.com/products/sa25-aseptic-filling-workcell/" target="_blank" rel="noopener"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="media/photos/robotic-aseptic-filling-13.webp" alt="SA 25 aseptic filling robotic system with an operator at its glove ports" width="1280" height="902" loading="lazy" decoding="async"><span class="tile-title">SA 25 - Aseptic Filling Robotic System</span></a><a class="tile" href="https://vanrx.com/products/microcell-vial-filler/" target="_blank" rel="noopener"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="media/photos/robotic-aseptic-filling-14.webp" alt="Microcell small-batch robotic isolator" width="1124" height="1130" loading="lazy" decoding="async"><span class="tile-title">Microcell - Small Batch Robotic Isolator</span></a></div></section></div>
+          <a class="next" href="?page=ai">
+            <span class="next-copy"><span class="next-label">Next</span><span class="next-title">AI</span></span>
+            <span class="next-media"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="media/photos/ai-lead.webp" alt="" loading="lazy"></span>
+          </a>
+        
+      </article>
+    
+      <article class="page" data-page="ai" data-title="AI" hidden>
+        
+          
+          <div class="head-band">
+          <header class="page-head has-lead">
+            <div class="head-copy">
+              
+              <h1 class="page-title"><span>AI</span></h1>
+              <div class="intro"><p>Since July I have built about a dozen engineering tools with Claude, mostly in Python and Google Apps Script. They read DeltaV and PLC project files and turn them into design documents, plain-language explanations and maps. Three matter most, and each is checked against the source before anyone relies on it.</p></div>
+            </div>
+            
+              <figure class="lead"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="media/photos/ai-lead.webp" alt="Illustration with made-up names: lines of a file on the left, a sequence chart of steps and transitions in the middle, and a ladder diagram and document cards on the right." width="1280" height="960" fetchpriority="high" decoding="async"></figure>
+            
+            
+              <dl class="facts">
+                <div><dt>Built with</dt><dd>Claude Code, Python, Google Apps Script</dd></div><div><dt>Since</dt><dd>July 2026</dd></div><div><dt>Tools</dt><dd>About a dozen, three shown here</dd></div><div data-todo="Confirm who uses them"><dt>Used by</dt><dd>The automation team at the Clinical Supply Center</dd></div>
+              </dl>
+            
+          </header>
+          </div>
+          <div class="block todo-stack"><aside class="todo-box" data-todo="Needs your input"><strong>What these saved</strong><span>One number per tool beats any adjective: hours per document before and after, runs a month, people using it. The Tool Portal counts how often each tool is opened, so its usage report in the Apps Script editor gives real totals.</span></aside></div>
+          <div class="page-body"><!-- Body of the AI page, added to the page by the "extra" field in Content.js. Placeholders (double braces) are filled in by Code.js.
+     Every statement comes from the tools' own handoff notes and audits. Plant, system and tag names are left out on purpose. -->
+<section class="block" aria-labelledby="ai-sds">
+  <div class="prose">
+    <h2 id="ai-sds">SDS Export Tool</h2>
+    <p>Design specifications and redlines from a DeltaV export.</p>
+  </div>
+  <figure class="pipe" role="group" aria-label="The SDS Export Tool takes a DeltaV configuration export and an optional earlier revision, and produces design specifications, a parameter reference and a redline.">
+    <div class="pipe-col">
+      <span class="pipe-head">Goes in</span>
+      <span class="pipe-node">DeltaV configuration export<small>A text file, read in the browser</small></span>
+      <span class="pipe-node">An earlier revision<small>Optional, for a redline</small></span>
+    </div>
+    <span class="pipe-arrow" aria-hidden="true"></span>
+    <div class="pipe-col">
+      <span class="pipe-node pipe-tool">SDS Export Tool<small>Python desktop and web versions</small></span>
+    </div>
+    <span class="pipe-arrow" aria-hidden="true"></span>
+    <div class="pipe-col">
+      <span class="pipe-head">Comes out</span>
+      <span class="pipe-node">Module design specification</span>
+      <span class="pipe-node">Recipe design specification</span>
+      <span class="pipe-node">Parameter reference</span>
+      <span class="pipe-node">Redline of what changed</span>
+    </div>
+  </figure>
+  <dl class="how">
+    <div><dt>What it does</dt><dd>Reads a configuration export in the browser and writes Module and Recipe design specifications, a parameter reference, and redline workbooks that mark what changed between two versions.</dd></div>
+    <div><dt>How Claude helped</dt><dd>We wrote the Python desktop tools first, then ported them to a web app on Google Apps Script. The desktop version also builds as a Windows app.</dd></div>
+    <div><dt>How I checked it</dt><dd>The web version was held to the desktop version&rsquo;s output on real configuration data: thousands of parameter traces, and redline workbooks cell by cell. A dozen automated test suites cover the logic.</dd></div>
+    <div><dt>Where it stands</dt><dd>Live as a web app, now past its hundredth version.</dd></div>
+  </dl>
+  <aside class="todo-box" data-todo="Needs your input"><strong>SDS Export Tool: a result and a picture</strong><span>One number (time saved, documents made or people using it) and a screenshot or short recording with the plant names removed.</span></aside>
+</section>
+
+<section class="block" aria-labelledby="ai-ci">
+  <div class="prose">
+    <h2 id="ai-ci">Code Interpreter</h2>
+    <p>Batch recipes, phases and control modules explained in plain language.</p>
+  </div>
+  <figure class="pipe" role="group" aria-label="The Code Interpreter takes DeltaV recipe, phase class and control strategy exports and produces execution flows in process language, reference data and a question-and-answer notebook.">
+    <div class="pipe-col">
+      <span class="pipe-head">Goes in</span>
+      <span class="pipe-node">Recipes and phase classes<small>DeltaV exports</small></span>
+      <span class="pipe-node">Control strategies<small>Modules, units and aliases</small></span>
+    </div>
+    <span class="pipe-arrow" aria-hidden="true"></span>
+    <div class="pipe-col">
+      <span class="pipe-node pipe-tool">Code Interpreter<small>Parsers and a description engine</small></span>
+    </div>
+    <span class="pipe-arrow" aria-hidden="true"></span>
+    <div class="pipe-col">
+      <span class="pipe-head">Comes out</span>
+      <span class="pipe-node">Execution flows in process language</span>
+      <span class="pipe-node">Reference data as JSON</span>
+      <span class="pipe-node">A notebook for engineers&rsquo; questions<small>Built from the documents</small></span>
+    </div>
+  </figure>
+  <dl class="how">
+    <div><dt>What it does</dt><dd>Parses DeltaV exports into a model of every recipe, phase class and module class. It writes execution flows in process language, reference documents and structured data, and a notebook answers questions from them.</dd></div>
+    <div><dt>How Claude helped</dt><dd>Claude helped write the parsers and the engine that turns equipment identifiers into process language. The same documents are the source for a question-and-answer notebook meant for process engineers, for example to ask what a phase waits for.</dd></div>
+    <div><dt>How I checked it</dt><dd>A verifier shares no code with the extractor: it re-reads the raw files and compares counts and expressions. An accuracy audit found and fixed cut-off text, garbled conditions and truncated tables.</dd></div>
+    <div><dt>Where it stands</dt><dd>Covers every batch procedure at one site, and feeds a question-and-answer notebook.</dd></div>
+  </dl>
+  <aside class="todo-box" data-todo="Needs your input"><strong>Code Interpreter: a result and a picture</strong><span>One number (questions answered, hours a recipe review used to take, or people asking) and a screenshot of a question and its answer with the names removed.</span></aside>
+</section>
+
+<section class="block" aria-labelledby="ai-plc">
+  <div class="prose">
+    <h2 id="ai-plc">PLC Logic Process Mapper</h2>
+    <p>A map of PLC logic for engineers who don&rsquo;t read ladder.</p>
+  </div>
+  <figure class="pipe" role="group" aria-label="The PLC Logic Process Mapper takes a PLC project file and DeltaV recipes, and produces a system map, redrawn ladder, a trace from a recipe step to a PLC rung and a lesson for new engineers.">
+    <div class="pipe-col">
+      <span class="pipe-head">Goes in</span>
+      <span class="pipe-node">PLC project file<small>Allen-Bradley Logix, no vendor software needed</small></span>
+      <span class="pipe-node">DeltaV recipes and signal list<small>To join the two sides</small></span>
+    </div>
+    <span class="pipe-arrow" aria-hidden="true"></span>
+    <div class="pipe-col">
+      <span class="pipe-node pipe-tool">PLC Logic Process Mapper<small>Python extractor, web app on Apps Script</small></span>
+    </div>
+    <span class="pipe-arrow" aria-hidden="true"></span>
+    <div class="pipe-col">
+      <span class="pipe-head">Comes out</span>
+      <span class="pipe-node">System map and program charts</span>
+      <span class="pipe-node">Ladder redrawn the way engineers read it</span>
+      <span class="pipe-node">A trace from a recipe step to a PLC rung</span>
+      <span class="pipe-node">A lesson for new engineers</span>
+    </div>
+  </figure>
+  <dl class="how">
+    <div><dt>What it does</dt><dd>Opens Logix project files with no vendor software, rebuilds programs, step sequences and ladder, and joins them to the DeltaV recipes that command them. A newcomer can follow one recipe step down to the rung that acts on it.</dd></div>
+    <div><dt>How Claude helped</dt><dd>We worked out the undocumented file format together, then wrote the reader for it with the Python standard library alone. Claude drafted the program descriptions, which show as unreviewed drafts until an engineer signs them off.</dd></div>
+    <div><dt>How I checked it</dt><dd>On the first controller every ladder rung was recovered, and a functional specification&rsquo;s step table matched the extracted sequence transition for transition. An audit regenerated the data from source, and each build now stops if a cross-reference is broken.</dd></div>
+    <div><dt>Where it stands</dt><dd>Deployed inside the company as an early-development tool, aimed at training junior engineers. It reads saved project files, so it shows the logic, not live values.</dd></div>
+  </dl>
+  <aside class="todo-box" data-todo="Needs your input"><strong>PLC Logic Process Mapper: a result and a picture</strong><span>One number (engineers trained, or hours a handshake trace used to take) and a screenshot with the plant names removed.</span></aside>
+</section>
+
+<section class="block" aria-labelledby="ai-how">
+  <div class="prose">
+    <h2 id="ai-how">How I work with AI</h2>
+    <p>Claude writes much of the code. The trust comes from the checks around it.</p>
+  </div>
+  <dl class="ai-rules">
+    <div><dt>Check it against the source</dt><dd>A second reader that shares no code with the tool re-reads the raw files and compares. It caught a bug that cut long text at 200 characters, which the first check had missed.</dd></div>
+    <div><dt>Prove the port</dt><dd>The web version of the SDS tool was held to the desktop version&rsquo;s output on thousands of real cases. The comparison exposed defects on both sides.</dd></div>
+    <div><dt>Label what the machine wrote</dt><dd>Generated text carries a badge until a named engineer reviews it, and each link between two systems says whether it is confirmed or only a lead.</dd></div>
+    <div><dt>Fence the data</dt><dd>Raw plant exports stay out of the repositories. A script and a git hook limit what reaches each shared remote, even if I slip.</dd></div>
+  </dl>
+</section>
+
+<section class="block">
+  <details class="more">
+    <summary>Smaller tools</summary>
+    <dl class="ai-rules">
+      <div><dt>Tool Portal</dt><dd>One page that links the team&rsquo;s tools in the company&rsquo;s look, with a count of how often each is opened.</dd></div>
+      <div><dt>Planned event generator</dt><dd>Drafts planned-event documents from user requirements and a template.</dd></div>
+      <div><dt>Change request drafter</dt><dd>Turns a short description into change-request text for the ticketing system.</dd></div>
+      <div><dt>On-call scheduler</dt><dd>Distributes holiday on-call duty among the team.</dd></div>
+    </dl>
+  </details>
+</section>
+</div>
           <a class="next" href="?page=prototyping">
             <span class="next-copy"><span class="next-label">Next</span><span class="next-title">Prototyping</span></span>
             <span class="next-media"><img crossorigin="anonymous" referrerpolicy="no-referrer" data-src="https://lh3.googleusercontent.com/d/1PZpmeAuRfucO0NyPxRhueTyDvaM1_Vff=w1000-l72-rw" alt="" loading="lazy"></span>
@@ -1411,6 +1623,11 @@
           </div>
         
           <div>
+            <a class="footer-head" href="?page=ai">AI</a>
+            
+          </div>
+        
+          <div>
             <a class="footer-head" href="?page=prototyping">Prototyping</a>
             <a href="?page=vending-machine">Drinkfill</a><a href="?page=wearable-airbag-system">Wearable Airbag</a><a href="?page=pour-over-robot">Pour Over Robot</a><a href="?page=dna-sequencing">DNA Sequencing</a>
           </div>
@@ -1539,21 +1756,25 @@
   }
 
   // ------------------------------------------------------------------ the next photo, ready before the click
-  // A page that isn't open holds its pictures back (data-src) so the first page loads quickly. To stop a click then waiting
-  // on the lead photo, it is fetched as soon as a link to its page is pointed at, and quietly once the open page has settled.
-  // A slow connection, or a visitor saving data, only gets the one that was pointed at.
-  var warmed = {};
+  // A page that isn't open holds its pictures back (data-src) so the first page loads quickly. To stop a click then waiting on
+  // them, the first picture of a page is fetched as soon as a link to it is pointed at, and quietly once the open page has
+  // settled. After that the other pages' pictures follow in the background (see below). A slow connection, or a visitor
+  // saving data, only gets the one that was pointed at.
+  var warmed = {}, fetched = {};
   function slowLink() {
     var c = navigator.connection;
     return !!(c && (c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '')));
   }
+  // what a page shows first: its lead photo, or for a page without one (a hub of cards) its first picture
+  function firstPicture(page) { return page && ($('.lead img[data-src]', page) || $('img[data-src]', page)); }
   function warmLead(slug) {
-    var page = pageEl(slug), img = page && $('.lead img[data-src]', page);
-    if (!img || warmed[slug]) return;
+    var img = firstPicture(pageEl(slug)), src = img && img.getAttribute('data-src');
+    if (!img || warmed[slug] || fetched[src]) return;
     var im = new Image();
     if (img.crossOrigin) im.crossOrigin = img.crossOrigin;
     im.referrerPolicy = img.referrerPolicy;
-    im.src = img.getAttribute('data-src');
+    im.src = src;
+    fetched[src] = 1;
     warmed[slug] = im;
   }
   function pointedAt(e) {
@@ -1568,11 +1789,108 @@
     var slugs = [];
     $$('a[href]', pageEl(current)).forEach(function (a) {
       var s = slugFromHref(a.getAttribute('href')), p = s && pageEl(s);
-      if (p && s !== current && slugs.indexOf(s) < 0 && !warmed[s] && $('.lead img[data-src]', p)) slugs.push(s);
+      if (p && s !== current && slugs.indexOf(s) < 0 && !warmed[s] && firstPicture(p)) slugs.push(s);
     });
     slugs.slice(0, 4).forEach(function (s, i) { setTimeout(function () { warmLead(s); }, i * 600); });
   }
-  function warmSoon() { setTimeout(warmNeighbours, 1500); }
+  // Every other page's pictures, fetched in the background once the open page has settled. Nearest pages first (by the links
+  // between pages), two at a time and at low priority, so a click finds them already in the cache. It waits while the open page
+  // is still loading its own pictures or the tab is in the background, and leaves pictures inside a closed details element or a
+  // hidden panel until someone opens them. Add ?preload=0 to the address to turn it off, to compare.
+  var PRELOAD = new URLSearchParams(location.search).get('preload') !== '0';
+  var inFlight = 0, pumpTimer = 0, busyChecks = 0;
+  function nearestPages() {
+    var order = [current], seen = {};
+    seen[current] = 1;
+    for (var i = 0; i < order.length; i++) {
+      $$('a[href]', pageEl(order[i])).forEach(function (a) {
+        var s = slugFromHref(a.getAttribute('href'));
+        if (s && !seen[s] && pageEl(s)) { seen[s] = 1; order.push(s); }
+      });
+    }
+    $$('article[data-page]').forEach(function (p) {
+      var s = p.getAttribute('data-page');
+      if (!seen[s]) { seen[s] = 1; order.push(s); }
+    });
+    return order.slice(1);
+  }
+  // the address of what an element shows once its page is opened: an image's own, or a video's still frame
+  function pendingUrl(el) { return el.getAttribute(el.tagName === 'VIDEO' ? 'data-poster' : 'data-src'); }
+  // false for a picture inside a closed details element or a hidden tab panel: nobody sees it until it is opened
+  function showsWithPage(el, page) { var held = el.closest('[hidden], details:not([open])'); return !held || held === page; }
+  function nextPicture() {
+    var pages = nearestPages(), i, k, el, url, list;
+    // first the picture each page opens with, so that a click on any page finds its first screen ready...
+    for (i = 0; i < pages.length; i++) {
+      el = firstPicture(pageEl(pages[i]));
+      url = el && pendingUrl(el);
+      if (url && !fetched[url] && showsWithPage(el, pageEl(pages[i]))) return el;
+    }
+    // ...then the rest of them, the nearest page first
+    for (i = 0; i < pages.length; i++) {
+      list = $$('img[data-src], video[data-poster]', pageEl(pages[i]));
+      for (k = 0; k < list.length; k++) {
+        url = pendingUrl(list[k]);
+        if (url && !fetched[url] && showsWithPage(list[k], pageEl(pages[i]))) return list[k];
+      }
+    }
+    return null;
+  }
+  // is any part of the picture within margin px of the viewport, once the boxes it sits in are taken into account? A picture in
+  // a rail beyond the part you can see, or in a closed details element, is left alone by the browser until it is brought into view.
+  function nearViewport(el, margin) {
+    if (el.closest('details:not([open])')) return false;
+    var r = el.getBoundingClientRect(), box = { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+    for (var p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      var cs = getComputedStyle(p);
+      if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+      var c = p.getBoundingClientRect();
+      box = { left: Math.max(box.left, c.left), right: Math.min(box.right, c.right), top: Math.max(box.top, c.top), bottom: Math.min(box.bottom, c.bottom) };
+    }
+    return box.right - box.left > 1 && box.bottom - box.top > 1 &&
+      box.bottom > -margin && box.top < window.innerHeight + margin && box.right > -margin && box.left < window.innerWidth + margin;
+  }
+  // is the open page still waiting for pictures it shows, or is about to show?
+  function pageIsLoading() {
+    var page = pageEl(current);
+    return $$('img', page).some(function (im) { return im.getAttribute('src') && !im.complete && nearViewport(im, 1000); }) ||
+      $$('video', page).some(function (v) { return v.networkState === 2 && v.readyState < 3; });
+  }
+  function schedulePump(ms) { clearTimeout(pumpTimer); pumpTimer = setTimeout(pumpPictures, ms); }
+  function pumpPictures() {
+    if (!PRELOAD || slowLink() || document.hidden) return;
+    while (inFlight < 2) {
+      var loading = pageIsLoading();
+      if (loading && busyChecks < 12) { busyChecks++; schedulePump(400); return; }
+      if (!loading) busyChecks = 0;
+      var img = nextPicture();
+      if (!img) return;
+      var src = pendingUrl(img), im = new Image();
+      fetched[src] = 1;
+      inFlight++;
+      if (img.crossOrigin) im.crossOrigin = img.crossOrigin;
+      im.referrerPolicy = img.referrerPolicy;
+      if ('fetchPriority' in im) im.fetchPriority = 'low';
+      im.onload = im.onerror = function () { inFlight--; schedulePump(80); };
+      im.src = src;
+    }
+  }
+  // A picture with loading="lazy" waits until the browser sees it near the screen, and the scan-line entrance keeps it clipped to
+  // nothing until its box is revealed, so a quick scroll can pass pictures that then never load. Once the open page has loaded,
+  // the pictures that belong to it (not those in a closed details element or a hidden tab) are let go at low priority, so each is
+  // ready before it is reached. A slow connection, or a visitor saving data, keeps the lazy behaviour.
+  function releaseLazy() {
+    if (!PRELOAD || slowLink()) return;
+    var page = pageEl(current);
+    $$('img[loading="lazy"]', page).forEach(function (im) {
+      if (!showsWithPage(im, page)) return;
+      if ('fetchPriority' in im) im.fetchPriority = 'low';
+      im.loading = 'eager';
+    });
+  }
+  function preloadSoon() { busyChecks = 0; schedulePump(1500); }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) schedulePump(300); });
+  function warmSoon() { setTimeout(releaseLazy, 300); setTimeout(warmNeighbours, 1500); preloadSoon(); }
   if (document.readyState === 'complete') warmSoon(); else window.addEventListener('load', warmSoon);
 
   document.addEventListener('click', function (e) {
